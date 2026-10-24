@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./backend
+    # Sin ports: solo es accesible desde la red de compose, a través del proxy del frontend.
+    environment:
+      AEMET_API_KEY: ${AEMET_API_KEY:?Falta AEMET_API_KEY. Cópiala en .env (ver .env.example) o expórtala antes de docker compose up}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,21 @@
+# Dependencias y salidas locales: la imagen las genera con npm ci y ng build
+node_modules/
+dist/
+.angular/
+coverage/
+out-tsc/
+
+# IDE, VCS y documentación
+.vscode/
+.idea/
+.git/
+.gitignore
+*.md
+
+# Ficheros de Docker (cambiarlos no debe invalidar la caché de COPY)
+Dockerfile
+.dockerignore
+
+# Secretos
+.env
+.env.*

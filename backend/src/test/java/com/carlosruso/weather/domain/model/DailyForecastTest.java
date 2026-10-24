@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +23,8 @@ class DailyForecastTest {
 
     @Test
     void realAgostForecastAveragesReadingsAndConvertsToFahrenheit() {
-        var forecast = new DailyForecast(DATE, List.of(14.0, 24.0, 20.0, 16.0), 26.0, 14.0, List.of());
+        var forecast = new DailyForecast(
+                LocalDate.of(2026, 10, 20), List.of(14.0, 24.0, 20.0, 16.0), 26.0, 14.0, List.of());
 
         assertEquals(18.5, forecast.averageCelsius(), DELTA);
         assertEquals(65.3, TemperatureUnit.G_FAH.fromCelsius(forecast.averageCelsius()), DELTA);
@@ -72,6 +74,19 @@ class DailyForecastTest {
     void rejectsForecastWithoutDate() {
         assertThrows(NullPointerException.class,
                 () -> new DailyForecast(null, List.of(10.0), null, null, List.of()));
+    }
+
+    @Test
+    void rejectsNullInsideTheReadings() {
+        assertThrows(NullPointerException.class,
+                () -> new DailyForecast(DATE, Arrays.asList(10.0, null), null, null, List.of()));
+    }
+
+    @Test
+    void nullPrecipitationProbabilitiesBecomeEmptyList() {
+        var forecast = new DailyForecast(DATE, List.of(10.0), null, null, null);
+
+        assertEquals(List.of(), forecast.precipitationProbabilities());
     }
 
     @Test

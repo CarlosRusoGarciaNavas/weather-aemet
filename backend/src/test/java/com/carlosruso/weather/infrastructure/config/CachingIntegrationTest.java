@@ -35,7 +35,7 @@ import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** Full context with the HTTP client mocked: no network. The fixtures are real AEMET answers. */
-@SpringBootTest(properties = "aemet.api-key=test-key")
+@SpringBootTest(properties = {"aemet.api-key=test-key", "aemet.cache.warmup-on-startup=false"})
 class CachingIntegrationTest {
 
     private static final String MUNICIPALITIES = readFixture("/aemet/municipios-extracto.json");

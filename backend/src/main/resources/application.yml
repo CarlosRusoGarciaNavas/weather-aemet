@@ -11,6 +11,7 @@ aemet:
     municipios-ttl: 24h
     forecast-ttl: 30m
     forecast-max-entries: 10000
+    warmup-on-startup: true
 
 cors:
   allowed-origins: http://localhost:4200

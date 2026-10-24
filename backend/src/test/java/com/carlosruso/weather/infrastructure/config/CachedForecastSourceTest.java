@@ -45,7 +45,7 @@ class CachedForecastSourceTest {
 
         @Bean
         CacheManager cacheManager(AtomicLong nanos) {
-            return CacheConfig.cacheManager(new AemetProperties.Cache(Duration.ofHours(24), TTL, 100), nanos::get);
+            return CacheConfig.cacheManager(new AemetProperties.Cache(Duration.ofHours(24), TTL, 100, false), nanos::get);
         }
 
         @Bean

@@ -70,7 +70,7 @@ class CacheConfigTest {
 
     @Test
     void managerUsesTheConfiguredTtls() {
-        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10);
+        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10, false);
         var manager = CacheConfig.cacheManager(settings, ticker);
         var forecasts = manager.getCache(CacheConfig.FORECASTS);
         var municipalities = manager.getCache(CacheConfig.MUNICIPALITIES);
@@ -85,7 +85,7 @@ class CacheConfigTest {
 
     @Test
     void managerOnlyKnowsTheTwoCaches() {
-        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10);
+        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10, false);
         var manager = CacheConfig.cacheManager(settings, ticker);
 
         assertEquals(Set.of(CacheConfig.MUNICIPALITIES, CacheConfig.FORECASTS), Set.copyOf(manager.getCacheNames()));
@@ -94,7 +94,7 @@ class CacheConfigTest {
 
     @Test
     void nullValuesAreRejected() {
-        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10);
+        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10, false);
         var forecasts = CacheConfig.cacheManager(settings, ticker).getCache(CacheConfig.FORECASTS);
 
         assertThrows(IllegalArgumentException.class, () -> forecasts.put("03002", null));

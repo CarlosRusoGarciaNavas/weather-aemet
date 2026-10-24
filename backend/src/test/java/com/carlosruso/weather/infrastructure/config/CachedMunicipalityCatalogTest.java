@@ -41,7 +41,7 @@ class CachedMunicipalityCatalogTest {
 
         @Bean
         CacheManager cacheManager(AtomicLong nanos) {
-            return CacheConfig.cacheManager(new AemetProperties.Cache(TTL, Duration.ofMinutes(30), 100), nanos::get);
+            return CacheConfig.cacheManager(new AemetProperties.Cache(TTL, Duration.ofMinutes(30), 100, false), nanos::get);
         }
 
         @Bean

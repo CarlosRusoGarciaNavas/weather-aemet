@@ -18,6 +18,7 @@ public record AemetProperties(
     public record Cache(
             @DefaultValue("24h") Duration municipiosTtl,
             @DefaultValue("30m") Duration forecastTtl,
-            @DefaultValue("10000") long forecastMaxEntries) {
+            @DefaultValue("10000") long forecastMaxEntries,
+            @DefaultValue("true") boolean warmupOnStartup) {
     }
 }

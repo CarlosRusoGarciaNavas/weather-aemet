@@ -1,0 +1,11 @@
+# Archivos de trabajo con Claude Code (no se suben)
+CLAUDE.md
+.claude/
+
+# IDE y sistema
+.idea/
+*.iml
+Thumbs.db
+
+# Secretos
+.env

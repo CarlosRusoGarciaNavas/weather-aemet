@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: weather-backend
+
+aemet:
+  api-key: ${AEMET_API_KEY:}
+  base-url: https://opendata.aemet.es/opendata/api
+  connect-timeout: 5s
+  read-timeout: 30s
+  cache:
+    municipios-ttl: 24h
+    forecast-ttl: 30m
+    forecast-max-entries: 10000

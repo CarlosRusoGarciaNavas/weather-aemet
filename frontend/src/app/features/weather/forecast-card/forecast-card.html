@@ -1,0 +1,29 @@
+<article class="forecast-card">
+  <p class="temperature">
+    <span class="label">Temperatura media</span>
+    <span class="value">{{ temperature() }}</span>
+  </p>
+
+  @if (forecast().precipitation.length > 0) {
+    <table>
+      <caption>Probabilidad de precipitación</caption>
+      <thead>
+        <tr>
+          <th scope="col">Tramo</th>
+          <th scope="col">Probabilidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- In the order received: the backend already sends the periods sorted. -->
+        @for (item of forecast().precipitation; track item.period) {
+          <tr>
+            <th scope="row">{{ item.period }} h</th>
+            <td>{{ item.probability }} %</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p class="empty">No hay datos de probabilidad de precipitación para mañana.</p>
+  }
+</article>

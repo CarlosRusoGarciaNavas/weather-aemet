@@ -1,11 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
+
+import { WeatherPage } from './features/weather/weather-page/weather-page';
 
 @Component({
-  imports: [],
+  imports: [WeatherPage],
   selector: 'app-root',
-  styleUrl: './app.css',
   templateUrl: './app.html',
 })
-export class App {
-  protected readonly title = signal('frontend');
-}
+export class App {}

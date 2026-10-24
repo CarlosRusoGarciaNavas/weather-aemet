@@ -1,24 +1,27 @@
 import { TestBed } from '@angular/core/testing';
+
 import { App } from './app';
+import { WeatherApiService } from './core/services/weather-api.service';
+import { LastSelectionStorage } from './core/storage/last-selection.storage';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  it('renders the weather page without asking for anything when nothing is saved', () => {
+    const api = { getTomorrowForecast: vi.fn(), searchMunicipalities: vi.fn() };
+    TestBed.configureTestingModule({
       imports: [App],
-    })
-      .compileComponents();
-  });
+      providers: [
+        { provide: WeatherApiService, useValue: api },
+        { provide: LastSelectionStorage, useValue: { get: () => null, save: vi.fn() } },
+      ],
+    });
 
-  it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
 
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+    expect(element.querySelector('app-weather-page h1')?.textContent).toBe('Previsión meteorológica');
+    expect(element.querySelector('app-municipality-search input')).not.toBeNull();
+    expect(element.querySelector('app-unit-selector fieldset')).not.toBeNull();
+    expect(api.getTomorrowForecast).not.toHaveBeenCalled();
   });
 });

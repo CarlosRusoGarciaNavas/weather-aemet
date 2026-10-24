@@ -1,0 +1,15 @@
+<fieldset class="unit-selector">
+  <legend>Unidad</legend>
+  @for (option of options; track option.value) {
+    <label>
+      <input
+        type="radio"
+        [name]="groupName"
+        [value]="option.value"
+        [checked]="option.value === unit()"
+        (change)="changed.emit(option.value)"
+      />
+      {{ option.label }}
+    </label>
+  }
+</fieldset>

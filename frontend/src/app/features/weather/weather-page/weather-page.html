@@ -1,0 +1,36 @@
+<main class="weather-page">
+  <header>
+    <h1>Previsión meteorológica</h1>
+    <p class="intro">Temperatura media y probabilidad de precipitación para mañana, con datos de AEMET.</p>
+  </header>
+
+  <div class="controls">
+    <app-municipality-search
+      [selectedName]="store.municipality()?.name ?? null"
+      (selected)="store.selectMunicipality($event)"
+    />
+    <app-unit-selector [unit]="store.unit()" (changed)="store.selectUnit($event)" />
+  </div>
+
+  <section class="forecast" aria-label="Previsión">
+    @let state = store.forecastState();
+    @switch (state.status) {
+      @case ('idle') {
+        <p class="hint">Elige un municipio para ver su previsión para mañana.</p>
+      }
+      @case ('loading') {
+        <p role="status">Cargando la previsión…</p>
+      }
+      @case ('loaded') {
+        <h2>Mañana en {{ store.municipality()?.name }}</h2>
+        <app-forecast-card [forecast]="state.forecast" />
+      }
+      @case ('error') {
+        <p class="error" role="alert">{{ errorMessage(state.category) }}</p>
+        @if (canRetry(state.category)) {
+          <button type="button" (click)="store.reload()">Reintentar</button>
+        }
+      }
+    }
+  </section>
+</main>

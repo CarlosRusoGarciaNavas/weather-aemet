@@ -3,6 +3,7 @@ package com.carlosruso.weather.infrastructure.web;
 import com.carlosruso.weather.application.port.ProviderRateLimitedException;
 import com.carlosruso.weather.application.port.ProviderUnavailableException;
 import com.carlosruso.weather.domain.exception.ForecastNotAvailableException;
+import com.carlosruso.weather.domain.exception.MunicipalityNotFoundException;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,12 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         log.debug("Forecast not available: {}", ex.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,
                 "There is no forecast for tomorrow for this municipality.");
+    }
+
+    @ExceptionHandler(MunicipalityNotFoundException.class)
+    ProblemDetail handleMunicipalityNotFound(MunicipalityNotFoundException ex) {
+        log.debug("Municipality not found: {}", ex.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Unknown municipality code.");
     }
 
     @ExceptionHandler(ProviderUnavailableException.class)

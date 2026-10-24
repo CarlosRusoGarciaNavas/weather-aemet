@@ -17,6 +17,7 @@ import com.carlosruso.weather.application.port.ProviderUnavailableException;
 import com.carlosruso.weather.application.service.MunicipalitySearchService;
 import com.carlosruso.weather.application.service.TomorrowForecastService;
 import com.carlosruso.weather.domain.exception.ForecastNotAvailableException;
+import com.carlosruso.weather.domain.exception.MunicipalityNotFoundException;
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import java.util.List;
@@ -109,6 +110,17 @@ class ApiExceptionHandlerTest {
                 .thenThrow(new ForecastNotAvailableException("AEMET has no forecast " + SECRET));
 
         assertNothingInternal(perform(FORECAST_URL, 404));
+    }
+
+    @Test
+    void anUnknownMunicipalityIs404WithAFixedText() throws Exception {
+        when(forecastService.forecastFor(anyString(), any()))
+                .thenThrow(new MunicipalityNotFoundException("Unknown municipality code 99999 " + SECRET));
+
+        var result = perform("/api/municipios/99999/prediccion/dia-siguiente", 404);
+
+        assertNothingInternal(result);
+        assertEquals("Unknown municipality code.", JsonPath.read(result.getResponse().getContentAsString(), "$.detail"));
     }
 
     @Test

@@ -3,13 +3,17 @@ package com.carlosruso.weather.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.carlosruso.weather.application.port.ForecastSource;
+import com.carlosruso.weather.application.port.MunicipalityCatalog;
 import com.carlosruso.weather.application.port.ProviderRateLimitedException;
 import com.carlosruso.weather.application.port.ProviderUnavailableException;
 import com.carlosruso.weather.domain.exception.ForecastNotAvailableException;
+import com.carlosruso.weather.domain.exception.MunicipalityNotFoundException;
 import com.carlosruso.weather.domain.model.DailyForecast;
 import com.carlosruso.weather.domain.model.DayPeriod;
+import com.carlosruso.weather.domain.model.Municipality;
 import com.carlosruso.weather.domain.model.PrecipitationProbability;
 import com.carlosruso.weather.domain.model.TemperatureUnit;
 import java.time.Clock;
@@ -32,6 +36,10 @@ class TomorrowForecastServiceTest {
     private static final List<PrecipitationProbability> PRECIPITATION = List.of(
             new PrecipitationProbability(0, DayPeriod.H00_06),
             new PrecipitationProbability(15, DayPeriod.H12_18));
+    /** Only Agost exists. */
+    private static final MunicipalityCatalog CATALOG = () -> List.of(new Municipality(AGOST, "Agost"));
+    /** Fails the test if the service gets as far as asking for the forecast. */
+    private static final ForecastSource UNREACHABLE = (code, date) -> fail("the forecast source must not be called");
 
     /** Fake that records the request and answers with a fixed forecast for the requested date. */
     private static class RecordingForecastSource implements ForecastSource {
@@ -67,7 +75,7 @@ class TomorrowForecastServiceTest {
     })
     void asksForTomorrowInMadrid(String now, LocalDate expectedTomorrow) {
         var source = new RecordingForecastSource(List.of(10.0));
-        var service = new TomorrowForecastService(source, clockAt(now));
+        var service = new TomorrowForecastService(CATALOG, source, clockAt(now));
 
         service.forecastFor(AGOST, TemperatureUnit.G_CEL);
 
@@ -77,7 +85,7 @@ class TomorrowForecastServiceTest {
 
     @Test
     void nullUnitDefaultsToCelsius() {
-        var service = new TomorrowForecastService(
+        var service = new TomorrowForecastService(CATALOG,
                 new RecordingForecastSource(List.of(14.0, 24.0, 20.0, 16.0)), MORNING);
 
         var result = service.forecastFor(AGOST, null);
@@ -88,7 +96,7 @@ class TomorrowForecastServiceTest {
 
     @Test
     void convertsTheAverageToFahrenheit() {
-        var service = new TomorrowForecastService(
+        var service = new TomorrowForecastService(CATALOG,
                 new RecordingForecastSource(List.of(14.0, 24.0, 20.0, 16.0)), MORNING);
 
         var result = service.forecastFor(AGOST, TemperatureUnit.G_FAH);
@@ -99,7 +107,8 @@ class TomorrowForecastServiceTest {
 
     @Test
     void averageIsNotRounded() {
-        var service = new TomorrowForecastService(new RecordingForecastSource(List.of(10.0, 10.0, 11.0)), MORNING);
+        var service = new TomorrowForecastService(
+                CATALOG, new RecordingForecastSource(List.of(10.0, 10.0, 11.0)), MORNING);
 
         var result = service.forecastFor(AGOST, TemperatureUnit.G_CEL);
 
@@ -108,9 +117,43 @@ class TomorrowForecastServiceTest {
 
     @Test
     void keepsThePrecipitationProbabilities() {
-        var service = new TomorrowForecastService(new RecordingForecastSource(List.of(10.0)), MORNING);
+        var service = new TomorrowForecastService(CATALOG, new RecordingForecastSource(List.of(10.0)), MORNING);
 
         assertEquals(PRECIPITATION, service.forecastFor(AGOST, TemperatureUnit.G_CEL).precipitationProbabilities());
+    }
+
+    @Test
+    void anUnknownCodeNeverReachesTheForecastSource() {
+        var service = new TomorrowForecastService(CATALOG, UNREACHABLE, MORNING);
+
+        assertThrows(MunicipalityNotFoundException.class, () -> service.forecastFor("99999", null));
+    }
+
+    @Test
+    void aKnownCodeReachesTheForecastSource() {
+        var source = new RecordingForecastSource(List.of(10.0));
+        var service = new TomorrowForecastService(CATALOG, source, MORNING);
+
+        service.forecastFor(AGOST, null);
+
+        assertEquals(AGOST, source.requestedCode);
+    }
+
+    @ParameterizedTest
+    @MethodSource("catalogErrors")
+    void propagatesCatalogErrorsUnchangedWithoutAskingForTheForecast(RuntimeException error) {
+        MunicipalityCatalog failing = () -> {
+            throw error;
+        };
+        var service = new TomorrowForecastService(failing, UNREACHABLE, MORNING);
+
+        assertSame(error, assertThrows(RuntimeException.class, () -> service.forecastFor(AGOST, null)));
+    }
+
+    static Stream<Arguments> catalogErrors() {
+        return Stream.of(
+                Arguments.of(new ProviderUnavailableException("AEMET down")),
+                Arguments.of(new ProviderRateLimitedException("Too many requests")));
     }
 
     static Stream<Arguments> sourceErrors() {
@@ -126,7 +169,7 @@ class TomorrowForecastServiceTest {
         ForecastSource failing = (code, date) -> {
             throw error;
         };
-        var service = new TomorrowForecastService(failing, MORNING);
+        var service = new TomorrowForecastService(CATALOG, failing, MORNING);
 
         assertSame(error, assertThrows(RuntimeException.class, () -> service.forecastFor(AGOST, null)));
     }

@@ -38,7 +38,8 @@ class WeatherConfig {
     }
 
     @Bean
-    TomorrowForecastService tomorrowForecastService(ForecastSource forecastSource, Clock clock) {
-        return new TomorrowForecastService(forecastSource, clock);
+    TomorrowForecastService tomorrowForecastService(
+            MunicipalityCatalog catalog, ForecastSource forecastSource, Clock clock) {
+        return new TomorrowForecastService(catalog, forecastSource, clock);
     }
 }

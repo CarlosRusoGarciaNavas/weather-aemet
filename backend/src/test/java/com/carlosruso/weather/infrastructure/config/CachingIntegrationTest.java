@@ -3,7 +3,10 @@ package com.carlosruso.weather.infrastructure.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,6 +15,7 @@ import com.carlosruso.weather.application.port.ForecastSource;
 import com.carlosruso.weather.application.port.MunicipalityCatalog;
 import com.carlosruso.weather.application.service.MunicipalitySearchService;
 import com.carlosruso.weather.application.service.TomorrowForecastService;
+import com.carlosruso.weather.domain.exception.MunicipalityNotFoundException;
 import com.carlosruso.weather.domain.model.TemperatureUnit;
 import com.carlosruso.weather.infrastructure.aemet.AemetHttpClient;
 import java.io.IOException;
@@ -37,6 +41,7 @@ class CachingIntegrationTest {
     private static final String MUNICIPALITIES = readFixture("/aemet/municipios-extracto.json");
     private static final String AGOST_FORECAST = readFixture("/aemet/prediccion-agost.json");
     private static final String AGOST = "03002";
+    private static final String UNKNOWN = "99999";
 
     @MockitoBean
     private AemetHttpClient client;
@@ -101,12 +106,39 @@ class CachingIntegrationTest {
 
     @Test
     void twoForecastRequestsFetchFromAemetOnce() {
+        when(client.fetchMunicipalities()).thenReturn(MUNICIPALITIES);
         when(client.fetchDailyForecast(AGOST)).thenReturn(AGOST_FORECAST);
 
         var celsius = forecastService.forecastFor(AGOST, TemperatureUnit.G_CEL);
         var fahrenheit = forecastService.forecastFor(AGOST, TemperatureUnit.G_FAH);
 
+        verify(client, times(1)).fetchMunicipalities();
         verify(client, times(1)).fetchDailyForecast(AGOST);
         assertEquals(celsius.precipitationProbabilities(), fahrenheit.precipitationProbabilities());
+    }
+
+    @Test
+    void twoRequestsForAnUnknownCodeNeverAskAemetForAForecast() {
+        when(client.fetchMunicipalities()).thenReturn(MUNICIPALITIES);
+
+        assertThrows(MunicipalityNotFoundException.class, () -> forecastService.forecastFor(UNKNOWN, null));
+        assertThrows(MunicipalityNotFoundException.class, () -> forecastService.forecastFor(UNKNOWN, null));
+
+        // The validation goes through the cached catalog: the list is downloaded once.
+        verify(client, times(1)).fetchMunicipalities();
+        verify(client, never()).fetchDailyForecast(anyString());
+    }
+
+    @Test
+    void aValidAndAnUnknownCodeInARowFetchTheListFromAemetOnce() {
+        when(client.fetchMunicipalities()).thenReturn(MUNICIPALITIES);
+        when(client.fetchDailyForecast(AGOST)).thenReturn(AGOST_FORECAST);
+
+        forecastService.forecastFor(AGOST, null);
+        assertThrows(MunicipalityNotFoundException.class, () -> forecastService.forecastFor(UNKNOWN, null));
+
+        verify(client, times(1)).fetchMunicipalities();
+        verify(client, times(1)).fetchDailyForecast(AGOST);
+        verify(client, never()).fetchDailyForecast(UNKNOWN);
     }
 }

@@ -6,7 +6,9 @@ const MESSAGES: Record<WeatherApiErrorCategory, string> = {
   'invalid-request': 'La petición no es válida. Prueba a elegir de nuevo el municipio.',
   unavailable:
     'No se ha podido contactar con el servicio meteorológico. Inténtalo de nuevo en unos minutos.',
-  'rate-limited': 'El servicio meteorológico está saturado. Espera un momento y vuelve a intentarlo.',
+  // Covers both causes: our own limit (429) and AEMET throttling the backend (503).
+  'rate-limited':
+    'Hay demasiadas peticiones en este momento. Espera unos segundos y vuelve a intentarlo.',
   unknown: 'Se ha producido un error inesperado al obtener la previsión.',
 };
 

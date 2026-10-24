@@ -11,7 +11,7 @@ describe('forecastErrorMessage', () => {
     ],
     [
       'rate-limited',
-      'El servicio meteorológico está saturado. Espera un momento y vuelve a intentarlo.',
+      'Hay demasiadas peticiones en este momento. Espera unos segundos y vuelve a intentarlo.',
     ],
     ['unknown', 'Se ha producido un error inesperado al obtener la previsión.'],
   ])('describes %s in Spanish', (category, message) => {

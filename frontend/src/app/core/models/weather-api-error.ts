@@ -17,7 +17,10 @@ export class WeatherApiError extends Error {
   }
 }
 
-/** Mirrors the backend: 502 = provider down, 503 = provider rate limit. 504 = a proxy timed out. */
+/**
+ * Mirrors the backend: 502 = provider down, 503 = provider rate limit. 504 = a proxy timed out.
+ * 429 = nginx limits this client's request rate.
+ */
 function categoryForStatus(status: number): WeatherApiErrorCategory {
   switch (status) {
     case 400:
@@ -28,6 +31,7 @@ function categoryForStatus(status: number): WeatherApiErrorCategory {
     case 502:
     case 504:
       return 'unavailable';
+    case 429:
     case 503:
       return 'rate-limited';
     default:

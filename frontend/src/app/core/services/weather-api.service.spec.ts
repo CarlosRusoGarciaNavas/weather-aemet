@@ -110,6 +110,7 @@ describe('WeatherApiService', () => {
       [502, 'Bad Gateway', 'unavailable'],
       [504, 'Gateway Timeout', 'unavailable'],
       [503, 'Service Unavailable', 'rate-limited'],
+      [429, 'Too Many Requests', 'rate-limited'],
       [500, 'Internal Server Error', 'unknown'],
     ])('maps HTTP %i to %s -> %s', (status, statusText, category) => {
       const error = captureForecastError((req) => req.flush(null, { status, statusText }));

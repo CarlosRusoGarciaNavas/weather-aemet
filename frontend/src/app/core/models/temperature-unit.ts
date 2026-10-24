@@ -1,2 +1,4 @@
 /** Values are the ones the API expects, so they travel unchanged. */
-export type TemperatureUnit = 'G_CEL' | 'G_FAH';
+export const TEMPERATURE_UNITS = ['G_CEL', 'G_FAH'] as const;
+
+export type TemperatureUnit = (typeof TEMPERATURE_UNITS)[number];

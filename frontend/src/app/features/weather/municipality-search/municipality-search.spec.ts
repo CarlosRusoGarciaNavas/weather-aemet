@@ -278,6 +278,19 @@ describe('MunicipalitySearch', () => {
       expect(emitted).toEqual([]);
     });
 
+    it('selects the whole text on focus without searching', () => {
+      fixture.componentRef.setInput('selectedName', 'Agost');
+      fixture.detectChanges();
+
+      input.dispatchEvent(new FocusEvent('focus'));
+      fixture.detectChanges();
+      wait(1000);
+
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe('Agost'.length);
+      expect(api.calls).toHaveLength(0);
+    });
+
     it('closes the list when the input loses focus', () => {
       showResults();
 

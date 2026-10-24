@@ -14,6 +14,7 @@
     [value]="text()"
     (input)="onInput(field.value)"
     (keydown)="onKeydown($event)"
+    (focus)="field.select()"
     (blur)="close()"
   />
 

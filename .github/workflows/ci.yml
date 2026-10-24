@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Mínimo privilegio: el workflow solo necesita leer el código.
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama (o PR) cancela la ejecución anterior, que ya no sirve.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      # verify: compila, ejecuta los tests y empaqueta el jar (lo mismo que mvnw test en local, más el package).
+      - run: ./mvnw -B verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NG_CLI_ANALYTICS: 'false'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      # La configuración por defecto de ng build es production (angular.json).
+      - run: npm run build
+      - run: npx ng test --no-watch
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Clave ficticia: compose la exige, y AEMET la rechaza. No es un secreto.
+      AEMET_API_KEY: ci-dummy-key-not-a-secret
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # --wait espera a que el backend esté healthy (HEALTHCHECK de su Dockerfile) y el frontend en marcha.
+      - name: Arrancar los contenedores
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: La SPA responde
+        run: curl -fsS --retry 5 --retry-connrefused --retry-delay 2 -o /dev/null http://localhost:8081/
+
+      # Con la clave ficticia AEMET no da datos: el backend debe responder un ProblemDetail a través del proxy.
+      # Sin -f: aquí se espera un error HTTP (502) y lo que se comprueba es el formato.
+      - name: La API responde con application/problem+json
+        run: |
+          read -r status content_type < <(curl -sS -o /dev/null -w '%{http_code} %{content_type}\n' \
+            'http://localhost:8081/api/municipios?nombre=ag')
+          echo "HTTP $status, Content-Type: $content_type"
+          case "$content_type" in
+            application/problem+json*) ;;
+            *) echo "::error::Se esperaba application/problem+json"; exit 1 ;;
+          esac
+
+      - name: Logs de los contenedores
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Parar y borrar los contenedores
+        if: always()
+        run: docker compose down -v

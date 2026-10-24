@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      # Los paquetes de Angular se publican y deben actualizarse juntos (peer dependencies).
+      angular:
+        patterns:
+          - '@angular/*'
+
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: weekly
+    ignore:
+      # Java 21 y Node 24 son decisiones del proyecto: solo parches y menores de las imágenes.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']

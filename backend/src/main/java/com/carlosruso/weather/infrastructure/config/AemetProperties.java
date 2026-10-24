@@ -1,4 +1,4 @@
-package com.carlosruso.weather.config;
+package com.carlosruso.weather.infrastructure.config;
 
 import jakarta.validation.constraints.NotBlank;
 import java.time.Duration;

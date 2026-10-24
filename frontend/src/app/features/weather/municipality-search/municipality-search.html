@@ -1,0 +1,47 @@
+<div class="municipality-search">
+  <label [for]="inputId">Municipio</label>
+  <input
+    #field
+    type="text"
+    role="combobox"
+    autocomplete="off"
+    spellcheck="false"
+    aria-autocomplete="list"
+    [id]="inputId"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-activedescendant]="activeOptionId()"
+    [value]="text()"
+    (input)="onInput(field.value)"
+    (keydown)="onKeydown($event)"
+    (blur)="close()"
+  />
+
+  <!-- Always in the DOM so aria-controls points to an existing element; hidden while collapsed.
+       preventDefault on mousedown keeps the focus in the input when using the scrollbar. -->
+  <ul
+    role="listbox"
+    aria-label="Municipios"
+    [id]="listboxId"
+    [hidden]="!expanded()"
+    (mousedown)="$event.preventDefault()"
+  >
+    @for (municipality of visibleResults(); track municipality.code; let i = $index) {
+      <li
+        role="option"
+        [id]="optionId(i)"
+        [attr.aria-selected]="i === activeIndex()"
+        [class.active]="i === activeIndex()"
+        (mousedown)="onOptionMouseDown($event, municipality)"
+      >
+        {{ municipality.name }}
+      </li>
+    }
+  </ul>
+
+  @if (state().status === 'loading') {
+    <p class="hint">Buscando…</p>
+  }
+  <!-- The live region exists from the start: screen readers only announce changes to a region they already know. -->
+  <p class="status" role="status" aria-live="polite">{{ statusMessage() }}</p>
+</div>

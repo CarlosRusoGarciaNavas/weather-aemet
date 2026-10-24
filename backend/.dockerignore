@@ -1,0 +1,19 @@
+# Salidas de build locales: la imagen compila desde cero
+target/
+
+# IDE, VCS y documentación que no hace falta para compilar
+.idea/
+*.iml
+.git/
+.gitignore
+.gitattributes
+HELP.md
+mvnw.cmd
+
+# Ficheros de Docker (cambiarlos no debe invalidar la caché de COPY)
+Dockerfile
+.dockerignore
+
+# Secretos
+.env
+.env.*

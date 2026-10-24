@@ -31,7 +31,7 @@ class CatalogWarmupTest {
 
     private static AemetProperties properties(boolean warmupOnStartup) {
         return new AemetProperties("test-key", "http://localhost", Duration.ofSeconds(1), Duration.ofSeconds(1),
-                new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 100, warmupOnStartup));
+                new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 100, warmupOnStartup), null);
     }
 
     @Test

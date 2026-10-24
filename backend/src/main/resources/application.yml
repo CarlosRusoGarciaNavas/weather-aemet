@@ -12,6 +12,10 @@ aemet:
     forecast-ttl: 30m
     forecast-max-entries: 10000
     warmup-on-startup: true
+  resilience:
+    cooldown: 30s
+    stale-ttl: 6h
+    stale-max-entries: 10000
 
 cors:
   allowed-origins: http://localhost:4200

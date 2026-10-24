@@ -57,4 +57,17 @@ class CacheConfig {
                 .recordStats()
                 .build();
     }
+
+    /**
+     * Last good answers, used by the resilient decorators when AEMET fails. Not part of the CacheManager:
+     * they are read directly, not through @Cacheable. Typed, because each decorator owns its own.
+     */
+    static <K, V> Cache<K, V> staleCache(Duration ttl, long maxEntries, Ticker ticker) {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(ttl)
+                .maximumSize(maxEntries)
+                .ticker(ticker)
+                .recordStats()
+                .<K, V>build();
+    }
 }

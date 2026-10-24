@@ -24,10 +24,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
@@ -79,17 +81,23 @@ class CachingIntegrationTest {
         cacheManager.getCacheNames().forEach(name -> cacheManager.getCache(name).clear());
     }
 
+    /**
+     * Each port has two beans: the cached decorator (a bean only so that Spring proxies it) and the resilient one.
+     * Only the resilient one can be injected by type, so the services cannot end up skipping it.
+     */
     @Test
-    void eachPortHasASingleBeanAndItIsTheProxiedDecorator() {
-        var catalogs = context.getBeansOfType(MunicipalityCatalog.class).values();
-        var sources = context.getBeansOfType(ForecastSource.class).values();
+    void eachPortInjectsTheResilientDecoratorAndTheCachedOneIsProxiedButNotInjectable() {
+        assertEquals(2, context.getBeansOfType(MunicipalityCatalog.class).size());
+        assertEquals(2, context.getBeansOfType(ForecastSource.class).size());
 
-        assertEquals(1, catalogs.size());
-        assertEquals(1, sources.size());
-        assertInstanceOf(CachedMunicipalityCatalog.class, catalogs.iterator().next());
-        assertInstanceOf(CachedForecastSource.class, sources.iterator().next());
-        assertTrue(AopUtils.isAopProxy(catalogs.iterator().next()));
-        assertTrue(AopUtils.isAopProxy(sources.iterator().next()));
+        assertInstanceOf(ResilientMunicipalityCatalog.class, context.getBean(MunicipalityCatalog.class));
+        assertInstanceOf(ResilientForecastSource.class, context.getBean(ForecastSource.class));
+
+        var beanFactory = (ConfigurableListableBeanFactory) context.getAutowireCapableBeanFactory();
+        for (String name : List.of("cachedMunicipalityCatalog", "cachedForecastSource")) {
+            assertFalse(beanFactory.getBeanDefinition(name).isAutowireCandidate(), name);
+            assertTrue(AopUtils.isAopProxy(context.getBean(name)), name);
+        }
     }
 
     @Test

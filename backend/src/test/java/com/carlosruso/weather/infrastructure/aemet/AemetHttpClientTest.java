@@ -43,7 +43,7 @@ class AemetHttpClientTest {
         var builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
         var properties = new AemetProperties(
-                API_KEY, BASE_URL, Duration.ofSeconds(1), Duration.ofSeconds(1), null);
+                API_KEY, BASE_URL, Duration.ofSeconds(1), Duration.ofSeconds(1), null, null);
         client = new AemetHttpClient(builder, properties);
     }
 

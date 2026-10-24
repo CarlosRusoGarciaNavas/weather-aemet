@@ -72,6 +72,9 @@ export class MunicipalitySearch {
   );
   protected readonly statusMessage = computed(() => statusMessage(this.state()));
 
+  /** Plain field, not a signal: the template does not show it. */
+  private keepSelectionOnMouseUp = false;
+
   private readonly typed = new Subject<string>();
   private readonly searchResets = new Subject<void>();
 
@@ -137,6 +140,28 @@ export class MunicipalitySearch {
   protected onOptionMouseDown(event: MouseEvent, municipality: Municipality): void {
     event.preventDefault();
     this.select(municipality);
+  }
+
+  protected onFocus(field: HTMLInputElement): void {
+    field.select();
+    this.keepSelectionOnMouseUp = true;
+  }
+
+  /**
+   * In Chrome, the mouseup that ends the click which gave the focus moves the cursor and undoes
+   * the selection. Only that first mouseup is cancelled, so later clicks place the cursor as usual.
+   */
+  protected onMouseUp(event: MouseEvent): void {
+    if (this.keepSelectionOnMouseUp) {
+      event.preventDefault();
+      this.keepSelectionOnMouseUp = false;
+    }
+  }
+
+  /** Focus reached with Tab brings no mouseup: the flag must not survive until the next click. */
+  protected onBlur(): void {
+    this.keepSelectionOnMouseUp = false;
+    this.close();
   }
 
   protected close(): void {

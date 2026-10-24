@@ -80,6 +80,18 @@ describe('MunicipalitySearch', () => {
     return event;
   }
 
+  function focus(): void {
+    input.dispatchEvent(new FocusEvent('focus'));
+    fixture.detectChanges();
+  }
+
+  function mouseUp(): MouseEvent {
+    const event = new MouseEvent('mouseup', { cancelable: true });
+    input.dispatchEvent(event);
+    fixture.detectChanges();
+    return event;
+  }
+
   function options(): HTMLElement[] {
     return Array.from(element.querySelectorAll<HTMLElement>('[role="option"]'));
   }
@@ -278,17 +290,34 @@ describe('MunicipalitySearch', () => {
       expect(emitted).toEqual([]);
     });
 
-    it('selects the whole text on focus without searching', () => {
+    // jsdom does not move the cursor on mouseup like Chrome does: these tests check the flag logic,
+    // and the real behaviour is checked by hand in the browser.
+    it('selects the whole text on focus, keeps it after the mouseup and does not search', () => {
       fixture.componentRef.setInput('selectedName', 'Agost');
       fixture.detectChanges();
 
-      input.dispatchEvent(new FocusEvent('focus'));
-      fixture.detectChanges();
+      focus();
+      mouseUp();
       wait(1000);
 
       expect(input.selectionStart).toBe(0);
       expect(input.selectionEnd).toBe('Agost'.length);
       expect(api.calls).toHaveLength(0);
+    });
+
+    it('cancels only the first mouseup after the focus', () => {
+      focus();
+
+      expect(mouseUp().defaultPrevented).toBe(true);
+      expect(mouseUp().defaultPrevented).toBe(false);
+    });
+
+    it('does not cancel the mouseup after a focus and blur without mouseup (e.g. Tab)', () => {
+      focus();
+      input.dispatchEvent(new FocusEvent('blur'));
+      fixture.detectChanges();
+
+      expect(mouseUp().defaultPrevented).toBe(false);
     });
 
     it('closes the list when the input loses focus', () => {

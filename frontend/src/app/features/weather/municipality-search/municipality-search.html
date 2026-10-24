@@ -14,8 +14,9 @@
     [value]="text()"
     (input)="onInput(field.value)"
     (keydown)="onKeydown($event)"
-    (focus)="field.select()"
-    (blur)="close()"
+    (focus)="onFocus(field)"
+    (mouseup)="onMouseUp($event)"
+    (blur)="onBlur()"
   />
 
   <!-- Always in the DOM so aria-controls points to an existing element; hidden while collapsed.

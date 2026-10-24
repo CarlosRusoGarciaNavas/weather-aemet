@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # --- Etapa final: nginx sirve los estáticos y hace de proxy de /api/ ---
-FROM nginx:1.30.0-alpine
+FROM nginx:1.31.0-alpine
 
 # Sustituye el server por defecto; el nginx.conf principal de la imagen lo incluye desde conf.d.
 COPY nginx.conf /etc/nginx/conf.d/default.conf

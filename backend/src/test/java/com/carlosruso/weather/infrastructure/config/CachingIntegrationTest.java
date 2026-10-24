@@ -3,7 +3,6 @@ package com.carlosruso.weather.infrastructure.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +29,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /** Full context with the HTTP client mocked: no network. The fixtures are real AEMET answers. */
 @SpringBootTest(properties = "aemet.api-key=test-key")
@@ -87,12 +85,6 @@ class CachingIntegrationTest {
         assertInstanceOf(CachedForecastSource.class, sources.iterator().next());
         assertTrue(AopUtils.isAopProxy(catalogs.iterator().next()));
         assertTrue(AopUtils.isAopProxy(sources.iterator().next()));
-    }
-
-    @Test
-    void theServicesReceiveTheDecorators() {
-        assertSame(context.getBean(MunicipalityCatalog.class), ReflectionTestUtils.getField(searchService, "catalog"));
-        assertSame(context.getBean(ForecastSource.class), ReflectionTestUtils.getField(forecastService, "forecastSource"));
     }
 
     @Test

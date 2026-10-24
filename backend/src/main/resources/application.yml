@@ -11,3 +11,6 @@ aemet:
     municipios-ttl: 24h
     forecast-ttl: 30m
     forecast-max-entries: 10000
+
+cors:
+  allowed-origins: http://localhost:4200

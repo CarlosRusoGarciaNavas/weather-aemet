@@ -44,6 +44,15 @@ class AemetMunicipalityCatalogTest {
         assertTrue(municipalities.contains(new Municipality("15030", "Coruña, A")));
     }
 
+    /** The cache hands the same list to every caller, so nobody may modify it. */
+    @Test
+    void theListIsImmutable() {
+        var municipalities = AemetMunicipalityCatalog.toMunicipalities(EXTRACT);
+
+        assertThrows(UnsupportedOperationException.class, () -> municipalities.add(new Municipality("99999", "X")));
+        assertThrows(UnsupportedOperationException.class, () -> municipalities.remove(0));
+    }
+
     @Test
     void skipsEntriesWithoutIdOrName() {
         var json = """

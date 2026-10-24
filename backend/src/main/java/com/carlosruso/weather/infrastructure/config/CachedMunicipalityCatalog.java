@@ -7,7 +7,7 @@ import java.util.Objects;
 import org.springframework.cache.annotation.Cacheable;
 
 /**
- * Caches the whole list (~2.9 MB, ~4 s from AEMET). Not final: Spring proxies it to apply the cache.
+ * Caches the whole list as a single entry. Not final: Spring proxies it to apply the cache.
  * sync = true: concurrent misses wait for a single call to the delegate. Exceptions are not cached.
  */
 public class CachedMunicipalityCatalog implements MunicipalityCatalog {

@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
+import org.springframework.cache.caffeine.CaffeineCache;
 
 /** Builds the caches with a fake ticker, so expiration is tested without waiting. */
 class CacheConfigTest {
@@ -90,6 +91,23 @@ class CacheConfigTest {
 
         assertEquals(Set.of(CacheConfig.MUNICIPALITIES, CacheConfig.FORECASTS), Set.copyOf(manager.getCacheNames()));
         assertNull(manager.getCache("typo"));
+    }
+
+    @Test
+    void bothCachesRecordHitsAndMisses() {
+        var settings = new AemetProperties.Cache(Duration.ofHours(24), Duration.ofMinutes(30), 10, false);
+        var manager = CacheConfig.cacheManager(settings, ticker);
+
+        for (String name : manager.getCacheNames()) {
+            var cache = (CaffeineCache) manager.getCache(name);
+            cache.put("present", "value");
+            cache.get("present");
+            cache.get("absent");
+
+            var stats = cache.getNativeCache().stats();
+            assertEquals(1, stats.hitCount(), name);
+            assertEquals(1, stats.missCount(), name);
+        }
     }
 
     @Test

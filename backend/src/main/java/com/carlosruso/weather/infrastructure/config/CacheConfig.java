@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * AEMET answers with Cache-Control no-store, so caching is ours. Only these two caches exist:
  * an unknown cache name fails instead of silently creating an unbounded one.
+ * Both record stats so Micrometer can publish hits and misses.
  */
 @Configuration
 @EnableCaching
@@ -44,6 +45,7 @@ class CacheConfig {
                 .expireAfterWrite(ttl)
                 .maximumSize(1)
                 .ticker(ticker)
+                .recordStats()
                 .build();
     }
 
@@ -52,6 +54,7 @@ class CacheConfig {
                 .expireAfterWrite(ttl)
                 .maximumSize(maxEntries)
                 .ticker(ticker)
+                .recordStats()
                 .build();
     }
 }

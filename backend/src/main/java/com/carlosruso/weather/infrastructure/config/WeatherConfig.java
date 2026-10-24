@@ -20,14 +20,16 @@ class WeatherConfig {
         return new AemetHttpClient(properties);
     }
 
+    /** The AEMET adapter is not a bean: the cached decorator is the only MunicipalityCatalog. */
     @Bean
     MunicipalityCatalog municipalityCatalog(AemetHttpClient client) {
-        return new AemetMunicipalityCatalog(client);
+        return new CachedMunicipalityCatalog(new AemetMunicipalityCatalog(client));
     }
 
+    /** The AEMET adapter is not a bean: the cached decorator is the only ForecastSource. */
     @Bean
     ForecastSource forecastSource(AemetHttpClient client) {
-        return new AemetForecastSource(client);
+        return new CachedForecastSource(new AemetForecastSource(client));
     }
 
     @Bean

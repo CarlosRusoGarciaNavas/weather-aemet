@@ -246,6 +246,58 @@ nginx también sirve la SPA con gzip, caché inmutable de un año para los fiche
   almacenamiento se ignora.
 - Cada código de error de la API tiene su mensaje; 404 y 400 no ofrecen reintentar.
 
+## Solución de problemas
+
+### La página carga, pero no se encuentran municipios ni previsiones
+
+El buscador muestra "No se han podido buscar los municipios. Inténtalo de nuevo." y la tarjeta de previsión
+"No se ha podido contactar con el servicio meteorológico. Inténtalo de nuevo en unos minutos." (este segundo
+mensaje corresponde a un 502, un 504 o un fallo de red).
+
+Causa más frecuente: la clave de AEMET es incorrecta. AEMET responde HTTP 401 y el backend lo convierte en
+502. Para comprobar la clave sin mostrarla, desde la raíz del proyecto (imprimen solo el código HTTP):
+
+```powershell
+# PowerShell
+$key = (Get-Content .env | Where-Object { $_ -like 'AEMET_API_KEY=*' }) -replace '^AEMET_API_KEY=', ''
+curl.exe -s -o NUL -w "%{http_code}`n" -H "api_key: $key" https://opendata.aemet.es/opendata/api/maestro/municipios
+```
+
+```bash
+# bash
+curl -s -o /dev/null -w '%{http_code}\n' -H "api_key: $(grep '^AEMET_API_KEY=' .env | cut -d= -f2-)" \
+  https://opendata.aemet.es/opendata/api/maestro/municipios
+```
+
+- `200`: la clave es válida. `401`: es incorrecta. Ojo: con la clave vacía AEMET también responde 200 (con
+  el cuerpo vacío), así que comprueba antes que `.env` no tiene `AEMET_API_KEY=` sin valor.
+- En `.env` la clave va entera, en una sola línea y sin comillas: `AEMET_API_KEY=eyJ...`. Es la clave que
+  llega en el cuerpo del correo de AEMET, no el enlace de confirmación.
+- Tras cambiar `.env`, recrea los contenedores:
+
+  ```bash
+  docker compose down
+  docker compose up --build
+  ```
+
+### El puerto 8081 está ocupado
+
+El frontend se publica en `8081` (`ports: "8081:80"` en `docker-compose.yml`). Libera ese puerto o cambia
+la parte izquierda (por ejemplo `"8082:80"`) y abre la aplicación en el puerto nuevo.
+
+### Docker no responde
+
+Docker Desktop debe estar en marcha antes de ejecutar `docker compose`. `docker info` falla si no lo está.
+
+### Ver los registros del backend
+
+```bash
+docker compose logs backend
+```
+
+Un fallo de AEMET aparece como `WARN` con el texto `Weather provider unavailable: ...` (con una clave
+incorrecta, `AEMET answered HTTP 401`). No pegues la clave en ningún sitio (issues, chats, capturas) y recuerda que `docker compose config` sin `--quiet` la imprime.
+
 ## Tests y CI
 
 Backend (JUnit, sin llamadas reales a AEMET):

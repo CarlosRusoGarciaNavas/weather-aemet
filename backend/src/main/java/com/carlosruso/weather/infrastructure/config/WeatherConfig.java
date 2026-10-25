@@ -61,9 +61,8 @@ class WeatherConfig {
     MunicipalityCatalog municipalityCatalog(
             AemetHttpClient client, ProviderGuard guard, AemetProperties properties,
             ObjectProvider<MeterRegistry> meterRegistry) {
-        var resilience = properties.resilience();
         Cache<String, List<Municipality>> lastGood =
-                CacheConfig.staleCache(resilience.staleTtl(), 1, Ticker.systemTicker());
+                CacheConfig.staleCache(properties.resilience().staleTtlMunicipios(), 1, Ticker.systemTicker());
         meterRegistry.ifAvailable(registry -> CaffeineCacheMetrics.monitor(registry, lastGood, "stale-municipalities"));
         return new ResilientMunicipalityCatalog(cachedMunicipalityCatalog(client), guard, lastGood);
     }

@@ -108,4 +108,24 @@ class ResilientMunicipalityCatalogTest {
 
         assertThrows(ProviderUnavailableException.class, catalog::findAll);
     }
+
+    /**
+     * The real TTLs on one clock: the 24 h cache in front of AEMET (as @Cacheable with sync = true would do)
+     * and the catalog's 7 day last good list. A gap longer than 6 h used to leave nothing to serve.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void afterAQuietGapTheCacheHasExpiredButTheLastGoodListIsStillServed() {
+        var primary = CacheConfig.municipalitiesCache(Duration.ofHours(24), time.ticker());
+        MunicipalityCatalog cached = () -> (List<Municipality>) primary.get("all", key -> delegate.findAll());
+        var chain = new ResilientMunicipalityCatalog(
+                cached, guard, CacheConfig.staleCache(Duration.ofDays(7), 1, time.ticker()));
+        var fresh = chain.findAll();
+
+        time.advance(Duration.ofDays(3)); // no requests: longer than 6 h, shorter than 7 days
+        delegate.failure = new ProviderUnavailableException("down");
+
+        assertSame(fresh, chain.findAll());
+        assertEquals(2, delegate.calls.get()); // the cache had expired, so AEMET was called and failed
+    }
 }

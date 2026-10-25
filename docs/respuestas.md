@@ -8,7 +8,7 @@ El listado completo de AEMET tarda en llegar (son dos llamadas encadenadas y var
 - Precarga al arrancar, en segundo plano, para que la primera búsqueda no espere.
 - Búsqueda por prefijo en el servidor: el navegador recibe solo los municipios que coinciden, no el listado entero.
 - En el frontend, espero 250 ms tras la última tecla, no busco con menos de 2 caracteres y cancelo la petición anterior si el usuario sigue escribiendo.
-- Si AEMET falla, sirvo la última copia buena (hasta 6 horas).
+- Si AEMET falla, sirvo la última respuesta correcta (hasta 7 días para el listado de municipios y 6 horas para las previsiones).
 
 Mejoras posibles: guardar el catálogo en disco o base de datos para no depender de AEMET ni al arrancar, precalcular un índice con los nombres normalizados (sin tildes ni mayúsculas) y añadir ETag y Cache-Control para que el navegador reutilice respuestas.
 

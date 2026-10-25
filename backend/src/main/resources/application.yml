@@ -15,6 +15,7 @@ aemet:
   resilience:
     cooldown: 30s
     stale-ttl: 6h
+    stale-ttl-municipios: 7d
     stale-max-entries: 10000
 
 cors:

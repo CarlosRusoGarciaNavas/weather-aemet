@@ -169,7 +169,11 @@ Cada puerto se cablea como `Resilient -> Cached -> adaptador AEMET` (`WeatherCon
 
 - Resilient (`ProviderGuard`, compartido por catálogo y predicciones): tras un fallo de AEMET deja de
   llamarlo durante 30 s (`aemet.resilience.cooldown`) y, si hay una respuesta buena anterior para esa
-  petición, la sirve durante hasta 6 h (`aemet.resilience.stale-ttl`). Si no la hay, devuelve el error
+  petición, la sirve: hasta 6 h las predicciones (`aemet.resilience.stale-ttl`) y hasta 7 días el
+  catálogo de municipios (`aemet.resilience.stale-ttl-municipios`). Cada respuesta correcta, también los
+  aciertos de caché, renueva ese plazo; el del catálogo debe ser mayor que su caché de 24 h (se valida al
+  arrancar), porque si no, tras un hueco sin tráfico, no habría reserva justo cuando caduca la caché y
+  AEMET falla. Si no la hay, devuelve el error
   (502 o 503, el mismo tipo que abrió el circuito). Un 404 de AEMET es una respuesta, no un fallo: no abre
   el circuito.
 - Cached: va por dentro del resiliente, así que un acierto de caché nunca se ve afectado por el circuito.
@@ -185,7 +189,8 @@ AEMET responde con `Cache-Control: no-store`, así que la caché es nuestra (Caf
 |---|---|---|
 | Municipios (lista completa, una entrada) | 24 h | 1 |
 | Predicciones (por municipio y fecha) | 30 min (compromiso entre frescura de los datos y carga sobre AEMET) | 10 000 |
-| Última respuesta buena (municipios / predicciones) | 6 h | 1 / 10 000 |
+| Última respuesta buena (municipios) | 7 días (mayor que la caché de municipios) | 1 |
+| Última respuesta buena (predicciones) | 6 h | 10 000 |
 
 Todas registran estadísticas de aciertos y fallos (`recordStats()`), que hoy no se exponen: Actuator solo
 expone `health`.

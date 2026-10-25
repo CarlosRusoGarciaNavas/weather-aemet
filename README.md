@@ -19,12 +19,18 @@ Hace falta una API key de AEMET OpenData (se solicita gratis en https://opendata
 Requisitos: Docker con Compose v2.
 
 ```bash
-cp .env.example .env
+git clone https://github.com/CarlosRusoGarciaNavas/weather-aemet.git
+cd weather-aemet
+cp .env.example .env               # PowerShell: Copy-Item .env.example .env
 # Editar .env y poner la clave: AEMET_API_KEY=...
 docker compose up --build
 ```
 
-La aplicación queda en http://localhost:8081.
+La aplicación queda en http://localhost:8081. La primera ejecución construye las imágenes y puede tardar
+varios minutos.
+
+Para parar: `Ctrl+C` en la terminal de `docker compose up` y después `docker compose down` para eliminar
+los contenedores.
 
 - El backend no publica puertos: solo es accesible desde la red de Compose, a través del proxy `/api/` de
   nginx. El frontend espera a que el healthcheck del backend (`/actuator/health`) esté en verde.

@@ -1,5 +1,5 @@
 # --- Etapa de build: Node 24 + Angular CLI ---
-FROM node:24.22.1-alpine AS build
+FROM node:24.22.2-alpine AS build
 WORKDIR /app
 ENV NG_CLI_ANALYTICS=false
 
